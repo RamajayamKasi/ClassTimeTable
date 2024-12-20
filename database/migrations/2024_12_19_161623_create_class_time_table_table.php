@@ -12,17 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('class_time_table', function (Blueprint $table) {
-            $table->id();
-            $table->integer('ctt_id');
+            $table->id('ctt_id');
+            $table->integer('user_id');
             $table->string('class_name');
-            $table->bigInteger('days');
-            $table->bigInteger('periods');
+            $table->bigInteger('days')->default(0);
+            $table->bigInteger('periods')->default(0);
             $table->time('start_time');
-            $table->bigInteger('duration');
-            $table->enum('break',['yes','no'])->default('no');
-            $table->text('break_data');
+            $table->bigInteger('duration')->default(0);
+            $table->bigInteger('break')->default(0);
+            $table->text('break_data')->default('');
             $table->enum('lunch',['yes','no'])->default('no');
-            $table->bigInteger('lunch_duration');
+            $table->bigInteger('lunch_after_period')->default(0);
+            $table->bigInteger('lunch_duration')->default(0);
+            $table->longText('subject_teacher_name')->default('');
             $table->enum('status',['active','inactive'])->default('active');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
