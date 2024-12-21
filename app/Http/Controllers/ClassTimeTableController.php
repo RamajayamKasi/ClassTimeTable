@@ -65,10 +65,10 @@ class ClassTimeTableController extends Controller
         $data = array('user_id' => Auth::user()->id, 'class_name' => $class_name, 'days' => $days, 'periods' => $periods, 'start_time' => $start_time, 'duration' => $duration, 'break' => $no_of_breaks, 'break_data' => json_encode($break_fields_value), 'lunch' => $lunch, 'lunch_after_period' => $lunch_after_period, 'lunch_duration' => $lunch_duration, 'status' => $status);
         if ($ctt_id == '') {
             $inserted_id = ClassTimeTableModal::insertGetId($data);
-            return response()->json(['status' => 1, 'message' => 'Class time table data added successfully.', 'id' => $inserted_id]);
+            return response()->json(['status' => 1, 'message' => 'Class time table data added successfully.', 'id' => $inserted_id, 'type' => "add"]);
         } else {
-            ClassTimeTableModal::where('ctt_id', $ctt_id)->where('user_id', '=',Auth::user()->id)->update($data);
-            return  response()->json(['status' => 1, 'message' => 'Class time table data update successfully.', 'id' => $ctt_id]);
+            ClassTimeTableModal::where('ctt_id', $ctt_id)->where('user_id', '=', Auth::user()->id)->update($data);
+            return  response()->json(['status' => 1, 'message' => 'Class time table data update successfully.', 'id' => $ctt_id, 'data' => array_merge($data, ['ctt_id' => $ctt_id]), 'type' => "update"]);
         }
     }
 
@@ -76,9 +76,9 @@ class ClassTimeTableController extends Controller
     {
         $ctt_id = isset($request->ctt_id) ? $request->ctt_id : '';
         if ($ctt_id == '') {
-            return ClassTimeTableModal::where('user_id', '=',Auth::user()->id)->orderBy('ctt_id', 'ASC')->orderBy('status', 'ASC')->get();
+            return ClassTimeTableModal::where('user_id', '=', Auth::user()->id)->orderBy('ctt_id', 'ASC')->orderBy('status', 'ASC')->get();
         } else {
-            return ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=',Auth::user()->id)->get();
+            return ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=', Auth::user()->id)->get();
         }
     }
 
@@ -86,7 +86,7 @@ class ClassTimeTableController extends Controller
     {
         $ctt_id = isset($request->ctt_id) ? $request->ctt_id : '';
         if ($ctt_id != '') {
-            $status = ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=',Auth::user()->id)->update(['status' => 'inactive']);
+            $status = ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=', Auth::user()->id)->update(['status' => 'inactive']);
             return response()->json(['status' => $status, 'message' => 'Class time table deleted successfully.']);
         } else {
             return response()->json(['status' => 0, 'message' => 'Class time table not deleted. Please contact admin.']);
@@ -97,7 +97,7 @@ class ClassTimeTableController extends Controller
     {
         $ctt_id = isset($request->ctt_id) ? $request->ctt_id : '';
         if ($ctt_id != '') {
-            $status = ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=',Auth::user()->id)->update(['status' => 'active']);
+            $status = ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=', Auth::user()->id)->update(['status' => 'active']);
             return response()->json(['status' => $status, 'message' => 'Class time table restored successfully.']);
         } else {
             return response()->json(['status' => 0, 'message' => 'Class time table not restored. Please contact admin.']);
@@ -107,10 +107,10 @@ class ClassTimeTableController extends Controller
     public function save_subject_teacher(Request $request)
     {
         $ctt_id = isset($request->ctt_id) ? $request->ctt_id : '';
-        $subjectTeacherName = isset($request->subjectTeacherName) ? json_encode($request->subjectTeacherName): '';
+        $subjectTeacherName = isset($request->subjectTeacherName) ? json_encode($request->subjectTeacherName) : '';
 
-        if ($ctt_id != '' && $subjectTeacherName!='') {
-            $status = ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=',Auth::user()->id)->update(['subject_teacher_name' => $subjectTeacherName]);
+        if ($ctt_id != '' && $subjectTeacherName != '') {
+            $status = ClassTimeTableModal::where('ctt_id', '=', $ctt_id)->where('user_id', '=', Auth::user()->id)->update(['subject_teacher_name' => $subjectTeacherName]);
             return response()->json(['status' => $status, 'message' => 'Class time table subject and teacher data added successfully.']);
         } else {
             return response()->json(['status' => 0, 'message' => 'Class time table subject and teacher data is not added. Please contact admin.']);

@@ -9,21 +9,25 @@
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight shrink-0 flex items-center ms-2">
+                    {{ __('Time Table') }}
+                </h2>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                {{-- <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('time_table')" :active="request()->routeIs('time_table')">
                         {{ __('Time Table') }}
                     </x-nav-link>
-                </div>
+                </div> --}}
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <button id="AddTimeTableData" class="btn btn-primary p-1 ps-3 pe-3 me-2"><i class="fa-solid fa-plus"></i></button>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                            <i class="fa-solid fa-user"></i>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -32,8 +36,11 @@
                             </div>
                         </button>
                     </x-slot>
-
                     <x-slot name="content">
+                        <x-dropdown-link>
+                            {{ __(Auth::user()->name) }}
+                        </x-dropdown-link>
+                        <hr>
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>

@@ -1,12 +1,7 @@
 <x-app-layout>
     <link rel="stylesheet" href="{{asset('css/time_table.css')}}">
 
-    <div class="bg-white overflow-hidden shadow-sm mt-1 d-flex justify-content-between p-3">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Class Time Table') }}
-        </h2>
-        <button id="AddTimeTableData" class="btn btn-primary p-1 ps-3 pe-3"><i class="fa-solid fa-plus"></i></button>
-    </div>
+
 
     <div class="py-1">
         <div class="max-w-7xl mx-auto p-2">
@@ -108,7 +103,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="add_subject_teacher_name">Add Subject &amp; Teacher</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary all_action_time_table" id="save_time_table">Save</button>
+                <button type="button" class="btn btn-primary all_action_time_table" id="save_update_time_table">Save</button>
             </div>
             </div>
         </div>

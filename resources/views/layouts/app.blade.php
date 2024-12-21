@@ -30,6 +30,18 @@
                 padding: 0px;
                 box-sizing: border-box;
             }
+            .layeout{
+                background: #80808047;
+                opacity: .5;
+                width:100%;
+                height: 100vh;
+                z-index: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                top:0px;
+            }
         </style>
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -43,6 +55,7 @@
         });
 
         $(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
+            $('.layeout').hide();
             if (
                 jqXHR.readyState == 4 &&
                 jqXHR.responseJSON != undefined &&
@@ -60,6 +73,11 @@
 
     </script>
     <body class="font-sans antialiased">
+        <div class="layeout">
+            <div style="text-align: center;">			
+                <img id="loading_screen" width="200" height="200" src="{{asset('images/LoadingScreen.gif')}}">
+            </div>
+        </div>
         <div class="min-h-screen bg-gray-100">
             @include('layouts.navigation')
 
