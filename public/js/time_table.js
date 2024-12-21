@@ -483,6 +483,7 @@ $(document).on("click", ".view_class_time_table", function (e) {
             $(".layeout").hide();
             openTimeTableModal("View Time Table", "hidden");
             $("#view_final_time_table").html(
+                '<h3 class="text-center h3">Class Name '+response[0].class_name+'</h3>'+
                 '<div class="col-12">' +
                     prepareTimeTable(response[0]) +
                     "</div>"
