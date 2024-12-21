@@ -312,9 +312,7 @@ function FetchTimeTableDetails() {
                 response.forEach((data, index) => {
                     $("#TimeTableView").append(
                         displayTimeTableDetails(
-                            data.class_name,
-                            data.ctt_id,
-                            data.status
+                            data
                         )
                     );
                 });
@@ -331,25 +329,32 @@ FetchTimeTableDetails();
 
 // Display the time table details
 
-function displayTimeTableDetails(className, ctt_id, status) {
-    let content = `<div class="col-3 class_time_table_cards_view">
-        <div class=" w-75 bg-white border border-gray-200 rounded-lg"  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;">
-            <div class="p-4">
-            <h5 style="font-size: 15px;display: flex;justify-content: center;border-radius: 50%;">Class Name: ${className}</h5></div>`;
-    if (status == "active") {
-        content += `<div class="action_group d-flex gap-4 justify-content-center  mt-2 pt-2 pb-2">
-                        <button ctt_id="${ctt_id}" class="edit_class_time_table btn btn-success"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button ctt_id="${ctt_id}" class="view_class_time_table btn btn-info text-white"><i class="fa-solid fa-eye"></i></button>
-                        <button ctt_id="${ctt_id}" class="delete_class_time_table btn btn-danger"><i class="fa-solid fa-trash"></i></button>
-                    </div>`;
-    } else {
-        content += `<div class="action_group d-flex gap-4 justify-content-center  mt-2 pt-2 pb-2">
-                        <button ctt_id="${ctt_id}" class="restore_class_time_table btn btn-success"><i class="fa-solid fa-trash-can-arrow-up"></i></button>
-                    </div>`;
-    }
-    content += `</div> 
-    </div>`;
+function displayTimeTableDetails(data) {
+    let break_content=(data.break>0)?', with 2 breaks and a':'';
+    let lunch_content=(data.lunch=='yes')?' 30-minute lunch after the 4th period':'';
 
+    let content = `<div class="col-3 class_time_table_cards_view">
+    <div class="card">
+            <div class="card-header" style="font-weight: bolder;">Class Name : ${data.class_name}</div>
+            <div class="card-body">
+            <p class="card-text" style="text-align: justify;">
+                Class ${data.class_name} has ${data.days} days, ${data.periods} periods per day, starting at ${data.start_time.replaceAll(':00','')}. Each period is ${data.duration} minutes ${break_content} ${lunch_content}.
+            </p><hr class="mt-2 pt-2 pb-2">`;
+            if (data.status == "active") {
+                content += `<div class="action_group d-flex gap-4 justify-content-center">
+                                <button ctt_id="${data.ctt_id}" class="edit_class_time_table btn btn-success"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button ctt_id="${data.ctt_id}" class="view_class_time_table btn btn-info text-white"><i class="fa-solid fa-eye"></i></button>
+                                <button ctt_id="${data.ctt_id}" class="delete_class_time_table btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                            </div>`;
+            } else {
+                content += `<div class="action_group d-flex gap-4 justify-content-center  mt-2 pt-2 pb-2">
+                                <button ctt_id="${data.ctt_id}" class="restore_class_time_table btn btn-success"><i class="fa-solid fa-trash-can-arrow-up"></i></button>
+                            </div>`;
+            }
+            content += `</div> 
+                    </div>
+                </div>
+            </div></div>`;
     return content;
 }
 
@@ -492,7 +497,7 @@ $(document).on("click", ".view_class_time_table", function (e) {
 // Prepare time table
 var period_start = "";
 function prepareTimeTable(time_table_data) {
-    period_start = time_table_data.start_time;
+    period_start = time_table_data.start_time.replaceAll(':00','');
     let daysName = [
         "Days",
         "Monday",
@@ -679,6 +684,11 @@ function FindPeriodTime(time, duration) {
 // });
 
 $(document).on("click", "#add_subject_teacher_name", function (e) {
+    swal.fire({
+        icon:'info',
+        text:'In the timetable view, subjects and teacher names can be directly entered.',
+        allowOutsideClick:false,
+    })
     $(".SetSubjectAndTeacher").attr("contenteditable", true);
     $(this).hide();
     $(".all_action_time_table").attr("id", "save_subject_teacher");
