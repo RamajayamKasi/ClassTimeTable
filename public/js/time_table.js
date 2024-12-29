@@ -24,18 +24,39 @@ function openTimeTableModal(title, buttontext) {
         ).hide();
         $("#adjustModalWidth").removeClass("modal-xl").addClass(" modal-lg");
         $("#save_update_time_table,#create_time_table_fields").show();
-        $("#save_update_time_table").text(buttontext);
+        $("#save_update_time_table").html(buttontext);
     }
 
     $("#classTimeTableModal").modal("show");
 }
 
 // No of breaks selection
+var no_of_break_details = [];
 $(document).on("change", "#no_of_breaks", function (e) {
     let value = $(this).val();
     if (value > 0) {
+        if ($(".break_fields").length != 0) {
+            for (i = 0; i < $(".break_fields").length; i++) {
+                no_of_break_details.push({
+                    key: i,
+                    period: $("#break_after_period_" + i)
+                        .val()
+                        .trim(),
+                    duration: $("#break_duration_" + i)
+                        .val()
+                        .trim(),
+                });
+            }
+        }
         prepareBreakContent(value);
+        if (no_of_break_details.length > 0) {
+            no_of_break_details.forEach((data, index) => {
+                $("#break_after_period_" + data.key).val(data.period);
+                $("#break_duration_" + data.key).val(data.duration);
+            });
+        }
     } else {
+        no_of_break_details = [];
         $("#display_break_fields").html("");
     }
 });
@@ -79,7 +100,7 @@ $(document).on("click", "#save_update_time_table", function (e) {
     let class_name = $("#class_name").val().trim();
     let days = $("#days option:selected").val();
     let periods = $("#periods").val().trim();
-    let start_time = $("#start_time").val().replaceAll(":00", "").trim();
+    let start_time = $("#start_time").val().trim();
     let duration = $("#duration").val().trim();
     let no_of_breaks = $("#no_of_breaks  option:selected").val();
     let lunch = $("#lunch").val();
@@ -91,7 +112,9 @@ $(document).on("click", "#save_update_time_table", function (e) {
     let break_after_period_validation = [],
         break_duration_validation = [],
         break_fields_period = [];
-    let break_fields_value = [];
+    let break_fields_value = [],
+        break_after_period_value = [],
+        duplicates_break_periods = [];
     if (no_of_breaks > 0) {
         break_after_period_validation = $(".break_fields")
             .map(function () {
@@ -100,6 +123,23 @@ $(document).on("click", "#save_update_time_table", function (e) {
                 }
             })
             .get();
+        break_after_period_value = $(".break_fields")
+            .map(function () {
+                if ($(this).find(".break_after_period").val() != "") {
+                    return $(this).find(".break_after_period").val();
+                }
+            })
+            .get();
+
+        duplicates_break_periods = [
+            ...new Set(
+                break_after_period_value.filter(
+                    (item, index) =>
+                        break_after_period_value.indexOf(item) !== index
+                )
+            ),
+        ];
+
         break_duration_validation = $(".break_fields")
             .map(function () {
                 if ($(this).find(".break_duration").val() == "") {
@@ -160,7 +200,7 @@ $(document).on("click", "#save_update_time_table", function (e) {
             icon: "error",
             text: "Kindly enter the periods.",
             didClose: () => {
-                $("#days").focus();
+                $("#periods").focus();
             },
             allowOutsideClick: false,
         });
@@ -204,6 +244,15 @@ $(document).on("click", "#save_update_time_table", function (e) {
             },
             allowOutsideClick: false,
         });
+    } else if (no_of_breaks > 0 && duplicates_break_periods.length != 0) {
+        swal.fire({
+            icon: "error",
+            text:
+                "The break period (" +
+                duplicates_break_periods[0] +
+                ") is already selected.",
+            allowOutsideClick: false,
+        });
     } else if (no_of_breaks > 0 && break_duration_validation.length != 0) {
         swal.fire({
             icon: "error",
@@ -229,6 +278,19 @@ $(document).on("click", "#save_update_time_table", function (e) {
         swal.fire({
             icon: "error",
             text: "Kindly enter the lunch after period.",
+            didClose: () => {
+                $("#lunch_after_period").focus();
+            },
+            allowOutsideClick: false,
+        });
+    } else if (
+        lunch == "yes" &&
+        lunch_after_period != "" &&
+        break_after_period_value.includes(lunch_after_period)
+    ) {
+        swal.fire({
+            icon: "error",
+            text: "The period is already selected in the break.",
             didClose: () => {
                 $("#lunch_after_period").focus();
             },
@@ -270,8 +332,11 @@ $(document).on("click", "#save_update_time_table", function (e) {
                 status,
                 ctt_id,
                 lunch_after_period,
+                duplicates_break_periods,
+                break_after_period_value,
             },
             success: function (response) {
+                $(".layeout").hide();
                 if (response["status"] == 1) {
                     swal.fire({
                         icon: "success",
@@ -280,21 +345,20 @@ $(document).on("click", "#save_update_time_table", function (e) {
                     });
                     let content = displayTimeTableDetails(
                         response["data"],
-                        response["type"],
+                        response["type"]
                     );
-                    if(response["type"]=='add'){
+                    if (response["type"] == "add") {
                         if ($(".class_time_table_cards_view").length == 0) {
                             $("#TimeTableView").html(content);
                         } else {
                             $("#TimeTableView").append(content);
                         }
-                    }else{
-                        $("#class_tima_table_"+ctt_id).html(content);
+                    } else {
+                        $("#class_tima_table_" + ctt_id).html(content);
                     }
 
                     $("#classTimeTableModal").modal("hide");
                     resetTimeTableFields();
-                    $(".layeout").hide();
                 } else {
                     swal.fire({
                         icon: "error",
@@ -322,7 +386,7 @@ function FetchTimeTableDetails() {
                 });
             } else {
                 $("#TimeTableView").html(
-                    '<div class="col-12">No class time table is found.</div>'
+                    '<div class="col-12">No time table is found.</div>'
                 );
             }
         },
@@ -334,27 +398,25 @@ FetchTimeTableDetails();
 // Display the time table details
 
 function displayTimeTableDetails(data, type = "add") {
-    let break_content = data.break > 0 ? ", with 2 breaks and a" : "";
+    let break_content =
+        data.break > 0 ? ", with " + data.break + " breaks" : "";
     let lunch_content =
-        data.lunch == "yes" ? " 30-minute lunch after the 4th period" : "";
+        data.lunch == "yes"
+            ? "  and a " +
+              data.lunch_duration +
+              "-minute lunch after the " +
+              data.lunch_after_period +
+              " period"
+            : "";
     let content = "";
     if (type == "add") {
         content += `<div class="col-3 class_time_table_cards_view" id="class_tima_table_${data.ctt_id}">`;
     }
     content += `<div class="card">
-            <div class="card-header" style="font-weight: bolder;">Class Name : ${
-                data.class_name
-            }</div>
+            <div class="card-header" style="font-weight: bolder;">Class Name : ${data.class_name}</div>
             <div class="card-body">
             <p class="card-text" style="text-align: justify;">
-                Class ${data.class_name} has ${data.days} days, ${
-        data.periods
-    } periods per day, starting at ${data.start_time.replaceAll(
-        ":00",
-        ""
-    )}. Each period is ${
-        data.duration
-    } minutes ${break_content} ${lunch_content}.
+                Class ${data.class_name} has ${data.days} days, ${data.periods} periods per day, starting at ${data.start_time}. Each period is ${data.duration} minutes ${break_content} ${lunch_content}.
             </p><hr class="mt-2 pt-2 pb-2">`;
     if (data.status == "active") {
         content += `<div class="action_group d-flex gap-4 justify-content-center">
@@ -449,7 +511,7 @@ $(document).on("click", ".edit_class_time_table", function (e) {
             $("#start_time").val(res.start_time);
             $("#duration").val(res.duration);
             $("#no_of_breaks").val(res.break).trigger("change");
-            $("#lunch").val("yes").trigger("change");
+            $("#lunch").val(res.lunch).trigger("change");
             $("#lunch_after_period").val(res.lunch_after_period);
             $("#lunch_duration").val(res.lunch_duration);
             $("#status").val("active");
@@ -471,6 +533,19 @@ $(document).on("click", ".edit_class_time_table", function (e) {
     });
 });
 
+$(document).on("change", "#lunch", function (e) {
+    let value = $(this).val();
+    if (value == "yes") {
+        $("#lunch_after_period").parent().show();
+        $("#lunch_duration").parent().show();
+    } else {
+        $("#lunch_after_period").parent().hide();
+        $("#lunch_duration").parent().hide();
+        $("#lunch_after_period").val("");
+        $("#lunch_duration").val("");
+    }
+});
+
 // Restore the class time table
 $(document).on("click", ".view_class_time_table", function (e) {
     let ctt_id = $(this).attr("ctt_id");
@@ -483,8 +558,10 @@ $(document).on("click", ".view_class_time_table", function (e) {
             $(".layeout").hide();
             openTimeTableModal("View Time Table", "hidden");
             $("#view_final_time_table").html(
-                '<h3 class="text-center h3">Class Name '+response[0].class_name+'</h3>'+
-                '<div class="col-12">' +
+                '<h3 class="text-center h3">Class Name ' +
+                    response[0].class_name +
+                    "</h3>" +
+                    '<div class="col-12">' +
                     prepareTimeTable(response[0]) +
                     "</div>"
             );
@@ -535,7 +612,7 @@ $(document).on("click", ".view_class_time_table", function (e) {
 // Prepare time table
 var period_start = "";
 function prepareTimeTable(time_table_data) {
-    period_start = time_table_data.start_time.replaceAll(":00", "");
+    period_start = time_table_data.start_time;
     let daysName = [
         "Days",
         "Monday",
@@ -548,7 +625,7 @@ function prepareTimeTable(time_table_data) {
     ];
     let daysSet = 0,
         index = 0,
-        setId = "subject";
+        setId = "teacher";
     let lunch_count = time_table_data.lunch == "yes" ? 1 : 0;
     let no_of_breaks = time_table_data.break;
     let break_data = [],
@@ -565,6 +642,7 @@ function prepareTimeTable(time_table_data) {
             console.log(error);
         }
     }
+    let increaseCount = 0;
     let timeTableContent =
         "<table id='time_table_list_view' class='mt-3 table table-striped table-bordered table-hover'>";
     for (d = 0; d < time_table_data.days + time_table_data.days; d++) {
@@ -575,6 +653,7 @@ function prepareTimeTable(time_table_data) {
             timeTableContent += "<tbody>";
         }
         timeTableContent += "<tr>";
+        increaseCount = 0;
         for (
             p = 0;
             p < time_table_data.periods + lunch_count + no_of_breaks;
@@ -586,20 +665,23 @@ function prepareTimeTable(time_table_data) {
                         "<td class='setRowSpan'>" + daysName[index] + "</td>";
                 } else {
                     timeTableContent +=
-                        "<td class='text-center' style='line-height: 4;'>1" +
+                        "<td class='text-center' style='line-height: 4;'>" +
                         daysName[index] +
                         "</td>";
                 }
             }
             if (p == 0 && daysSet == 1) {
-                timeTableContent += `<td></td>`;
+                increaseCount = 1;
+                timeTableContent += `<td class="SetSubjectAndTeacher" header_id="header_0_${
+                    p + increaseCount
+                }" id='${setId}_${d + "_" + p}'></td>`;
             }
             if (d == 0) {
                 if (
                     breakPeriodsData.length != 0 &&
                     breakPeriodsData.includes(p)
                 ) {
-                    timeTableContent += `<td  class='text-center'>Break ${
+                    timeTableContent += `<td id="header_0_${p}" class='text-center'>Break ${
                         p + 1
                     } <br> ${period_start} to ${FindPeriodTime(
                         period_start,
@@ -609,14 +691,14 @@ function prepareTimeTable(time_table_data) {
                     lunch_count == 1 &&
                     time_table_data.lunch_after_period == p
                 ) {
-                    timeTableContent += `<td  class='text-center'>Lunch ${
+                    timeTableContent += `<td id="header_0_${p}" class='text-center'>Lunch ${
                         p + 1
                     } <br> ${period_start} to ${FindPeriodTime(
                         period_start,
                         time_table_data.lunch_duration
                     )}</td>`;
                 } else {
-                    timeTableContent += `<td  class='text-center'>Period ${
+                    timeTableContent += `<td id="header_0_${p}" class='text-center'>Period ${
                         p + 1
                     } <br> ${period_start} to ${FindPeriodTime(
                         period_start,
@@ -626,21 +708,28 @@ function prepareTimeTable(time_table_data) {
             } else {
                 if (
                     lunch_count == 1 &&
-                    time_table_data.lunch_after_period == p
+                    time_table_data.lunch_after_period == p + increaseCount
                 ) {
-                    timeTableContent += `<td></td>`;
+                    timeTableContent += `<td header_id="header_0_${
+                        p + increaseCount
+                    }"></td>`;
                 } else if (
                     breakPeriodsData.length != 0 &&
-                    breakPeriodsData.includes(p)
+                    breakPeriodsData.includes(p + increaseCount)
                 ) {
-                    timeTableContent += `<td></td>`;
+                    timeTableContent += `<td header_id="header_0_${
+                        p + increaseCount
+                    }"></td>`;
                 } else {
-                    timeTableContent += `<td class='SetSubjectAndTeacher' id='${setId}_${
-                        d + "_" + p
+                    timeTableContent += `<td header_id="header_0_${
+                        p + increaseCount
+                    }" class='SetSubjectAndTeacher' id='${setId}_${
+                        d + "_" + (p + increaseCount)
                     }'></td>`;
                 }
             }
         }
+
         if (d > 0) {
             daysSet++;
         }
@@ -731,13 +820,20 @@ $(document).on("click", "#add_subject_teacher_name", function (e) {
     $(this).hide();
     $(".all_action_time_table").attr("id", "save_subject_teacher");
     $(".all_action_time_table").show();
+    $(".all_action_time_table").text("Save");
 });
 
 // Save the subject and teacher name
 $(document).on("click", "#save_subject_teacher", function (e) {
     let subjectTeacherName = $(".SetSubjectAndTeacher")
         .map(function (items) {
-            if ($(this).text().trim() != "") {
+            if (
+                $(this).text().trim() != "" &&
+                $(this).attr("id") != undefined &&
+                $("#" + $(this).attr("header_id"))
+                    .text()
+                    .includes("Period")
+            ) {
                 return [{ id: $(this).attr("id"), value: $(this).text() }];
             }
         })

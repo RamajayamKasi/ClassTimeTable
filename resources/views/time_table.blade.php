@@ -56,7 +56,7 @@
                     <div class="col-6 mt-2">
                         <label for="no_of_breaks">No of Breaks : </label>
                         <select name="no_of_breaks" id="no_of_breaks" class=" rounded w-100">
-                            <option value="">0</option>
+                            <option value="0">0</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>

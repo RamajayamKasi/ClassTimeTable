@@ -4,14 +4,20 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="shrink-0 flex items-center gap-3">
                     <a href="{{ route('time_table') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
+                    <h2 class="font-semibold text-xl text-gray-800 leading-tight shrink-0 ms-2">
+                        {{ __('Time Table') }}
+                    </h2>
+                    {{-- <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" class="rounded h-50 w-100" name="search_class_time_table" id="search_class_time_table" placeholder="Search Class...">
+                      </div> --}}
+            
                 </div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight shrink-0 flex items-center ms-2">
-                    {{ __('Time Table') }}
-                </h2>
+
 
                 <!-- Navigation Links -->
                 {{-- <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">

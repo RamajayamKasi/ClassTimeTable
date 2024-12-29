@@ -23,10 +23,13 @@ class ClassTimeTableController extends Controller
         $duration = $request->duration;
         $no_of_breaks = $request->no_of_breaks;
         $lunch = $request->lunch;
-        $lunch_duration = $request->lunch_duration;
+        $lunch_duration = (isset($request->lunch_duration) && $request->lunch_duration != '') ? $request->lunch_duration : 0;
         $break_fields_value = $request->break_fields_value;
         $status = $request->status;
-        $lunch_after_period = $request->lunch_after_period;
+        $lunch_after_period = (isset($request->lunch_after_period) && $request->lunch_after_period != '') ? $request->lunch_after_period : 0;
+        $duplicates_break_periods = $request->duplicates_break_periods;
+        $break_after_period_value = $request->break_after_period_value;
+
 
         $ctt_id = isset($request->ctt_id) ? $request->ctt_id : '';
 
@@ -61,12 +64,30 @@ class ClassTimeTableController extends Controller
         if ($lunch == 'yes' && $lunch_duration > 60) {
             return response()->json(['status' => 0, 'message' => 'The lunch duration is not greater then 60.']);
         }
+        if ($no_of_breaks > 0 && $duplicates_break_periods != null && count($duplicates_break_periods) != 0) {
+            return response()->json(['status' => 0, 'message' => 'The break period (' +
+                $duplicates_break_periods[0] +
+                ') is already selected."']);
+        }
+        if ($lunch == 'yes' && $lunch_duration != '' && $break_after_period_value != null && in_array($lunch_duration, $break_after_period_value)) {
+            return response()->json(['status' => 0, 'message' => 'The period is already selected in the break.']);
+        }
 
         $data = array('user_id' => Auth::user()->id, 'class_name' => $class_name, 'days' => $days, 'periods' => $periods, 'start_time' => $start_time, 'duration' => $duration, 'break' => $no_of_breaks, 'break_data' => json_encode($break_fields_value), 'lunch' => $lunch, 'lunch_after_period' => $lunch_after_period, 'lunch_duration' => $lunch_duration, 'status' => $status);
+
         if ($ctt_id == '') {
+            $checkClassNameExits = ClassTimeTableModal::where('class_name', '=', $class_name)->where('user_id', '=', Auth::user()->id)->get();
+            if (count($checkClassNameExits) > 0) {
+                return response()->json(['status' => 0, 'message' => 'This class time table already exits.']);
+            }
             $inserted_id = ClassTimeTableModal::insertGetId($data);
-            return response()->json(['status' => 1, 'message' => 'Class time table data added successfully.', 'id' => $inserted_id, 'type' => "add"]);
+            return response()->json(['status' => 1, 'message' => 'Class time table data added successfully.', 'id' => $inserted_id, 'type' => "add", 'data' => array_merge($data, ['ctt_id' => $inserted_id])]);
         } else {
+            $checkClassNameExits = ClassTimeTableModal::where('class_name', '=', $class_name)->where('ctt_id', '!=', $ctt_id)->where('user_id', '=', Auth::user()->id)->get();
+            
+            if (count($checkClassNameExits) > 0) {
+                return response()->json(['status' => 0, 'message' => 'This class time table already exits.']);
+            }
             ClassTimeTableModal::where('ctt_id', $ctt_id)->where('user_id', '=', Auth::user()->id)->update($data);
             return  response()->json(['status' => 1, 'message' => 'Class time table data update successfully.', 'id' => $ctt_id, 'data' => array_merge($data, ['ctt_id' => $ctt_id]), 'type' => "update"]);
         }

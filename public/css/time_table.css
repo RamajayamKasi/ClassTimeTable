@@ -1,3 +1,6 @@
 .SetSubjectAndTeacher{
     max-width: 150px !important;
 }
+#search_class_time_table:focus{
+    border-bottom: 1px solid blue;
+}

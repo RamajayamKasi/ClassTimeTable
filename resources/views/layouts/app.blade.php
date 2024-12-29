@@ -10,6 +10,8 @@
         <link rel="shortcut icon" href="{{ asset('images/Prepare-a-timetable.png') }}" type="image/png">
         <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
         <link rel="stylesheet" href="{{ asset('DataTables/datatables.css') }}">
+        <link rel="stylesheet" href="{{asset('js/fontawesome/css/all.min.css')}}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script src="{{ asset('js/jquery.js') }}"></script>
         <script src="{{ asset('js/swal.js') }}"></script>
         <script src="{{ asset('js/bootstrap.min.js') }}"></script>
@@ -32,15 +34,18 @@
             }
             .layeout{
                 background: #80808047;
-                opacity: .5;
                 width:100%;
                 height: 100vh;
-                z-index: 1;
-                display: flex;
-                justify-content: center;
-                align-items: center;
+                z-index: 9999;
                 position: absolute;
                 top:0px;
+            }
+
+            .layeout div{
+                position: absolute;
+                left: 43%;
+                top: 50%;
+                transform: translateY(-50%);
             }
         </style>
         <!-- Scripts -->
@@ -96,4 +101,7 @@
             </main>
         </div>
     </body>
+    <script>
+        $('.layeout').hide();
+    </script>
 </html>
